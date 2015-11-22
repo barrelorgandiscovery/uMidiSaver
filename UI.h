@@ -2,6 +2,9 @@
 #ifndef _UI
 #define _UI
 
+
+#include <ChibiOS_AVR.h>
+
 #include "SPFD5408_Adafruit_GFX.h"
 #include "SPFD5408_Adafruit_TFTLCD.h"
 // #include <SPFD5408_TouchScreen.h>
