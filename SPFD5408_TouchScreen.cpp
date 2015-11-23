@@ -156,12 +156,8 @@ TSPoint TouchScreen::getPoint(void) {
      z = 0;
    }
 
-   //return TSPoint(x, y, z);
-
-   // *** SPFD5408 change -- Begin
-   // SPFD5408 change, because Y coordinate is inverted in this controller
-   return TSPoint(x, 1023 - y, z);
-   // -- End
+   return TSPoint(x, y, z);
+   
 }
 
 TouchScreen::TouchScreen(uint8_t xp, uint8_t yp, uint8_t xm, uint8_t ym) {

@@ -50,6 +50,7 @@ static msg_t Thread2(void *arg) {
   //chSemSignal(&sem);
  //interrupts();
   RunUI();
+  
    while (true) {
     
    }

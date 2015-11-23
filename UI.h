@@ -69,6 +69,18 @@
 #define YELLOW  0xFFE0
 #define WHITE   0xFFFF
 
+
+ class Scale {
+      private:
+        float a;
+        float b;
+
+      public:
+        Scale(float x1, float y1, float x2, float y2);
+        float convert(float x);
+  };
+  
+
 extern "C" {
    
     void InitUI();
