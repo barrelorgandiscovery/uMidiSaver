@@ -51,9 +51,6 @@ static msg_t Thread2(void *arg) {
  //interrupts();
   RunUI();
   
-   while (true) {
-    
-   }
   return 0;  
 }
 

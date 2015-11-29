@@ -1,6 +1,71 @@
 #include "UI.h"
 
 
+#include <ChibiOS_AVR.h>
+
+#include "SPFD5408_Adafruit_GFX.h"
+#include "SPFD5408_Adafruit_TFTLCD.h"
+#include "SPFD5408_TouchScreen.h"
+#include "GFX.h"
+#include "GUI.h"
+#include "Application.h"
+
+// *** SPFD5408 change -- End
+
+#if defined(__SAM3X8E__)
+    #undef __FlashStringHelper::F(string_literal)
+    #define F(string_literal) string_literal
+#endif
+
+// When using the BREAKOUT BOARD only, use these 8 data lines to the LCD:
+// For the Arduino Uno, Duemilanove, Diecimila, etc.:
+//   D0 connects to digital pin 8  (Notice these are
+//   D1 connects to digital pin 9   NOT in order!)
+//   D2 connects to digital pin 2
+//   D3 connects to digital pin 3
+//   D4 connects to digital pin 4
+//   D5 connects to digital pin 5
+//   D6 connects to digital pin 6
+//   D7 connects to digital pin 7
+
+
+#define YP A1  // must be an analog pin, use "An" notation!
+#define XM A2  // must be an analog pin, use "An" notation!
+#define YM 7   // can be a digital pin
+#define XP 6   // can be a digital pin
+
+// Original values
+//#define TS_MINX 150
+//#define TS_MINY 120
+//#define TS_MAXX 920
+//#define TS_MAXY 940
+
+// Calibrate values
+#define TS_MINX 125
+#define TS_MINY 85
+#define TS_MAXX 965
+#define TS_MAXY 905
+
+
+
+#define LCD_CS A3
+#define LCD_CD A2
+#define LCD_WR A1
+#define LCD_RD A0
+// optional
+#define LCD_RESET A4
+
+// Assign human-readable names to some common 16-bit color values:
+#define BLACK   0x0000
+#define BLUE    0x001F
+#define RED     0xF800
+#define GREEN   0x07E0
+#define CYAN    0x07FF
+#define MAGENTA 0xF81F
+#define YELLOW  0xFFE0
+#define WHITE   0xFFFF
+
+
   // For better pressure precision, we need to know the resistance
   // between X+ and X- Use any multimeter to read it
   // For the one we're using, its 300 ohms across the X plate
@@ -8,11 +73,24 @@
 
   static Adafruit_TFTLCD tft(LCD_CS, LCD_CD, LCD_WR, LCD_RD, LCD_RESET);
   static GFX gfx(&tft, 240,320);
+  
   TouchScreen ts  = TouchScreen(XP, YP, XM, YM, SENSITIVITY);
 
 
   #define MINPRESSURE 100 // inital 200-700
   #define MAXPRESSURE 700
+
+  TSPoint getPoint() {
+      TSPoint p; 
+      p= ts.getPoint(); 
+      pinMode(XM, OUTPUT); //Pins configures again for TFT control
+      pinMode(YP, OUTPUT);
+      return p;
+  }
+
+  bool isTouched(TSPoint p) {
+      return !((p.z < MINPRESSURE )|| (p.z > MAXPRESSURE));
+  }
   
   
   TSPoint waitOneTouch() {
@@ -31,11 +109,10 @@
 }
 
 
-  Adafruit_GFX_Button btn;
+ 
   void InitUI() {
        
        
-       btn = Adafruit_GFX_Button();
        
        tft.begin(0x9341); // SDFP5408
        tft.setRotation(90);
@@ -48,59 +125,42 @@
       gfx.drawLine(x - 10, y + 10, x + 10, y - 10, color);
   }
 
-  Scale::Scale(float x1, float y1, float x2, float y2) {
-    a = (y2 - y1) / (x2 - x1);
-    b = y1 - a * x1; 
-  }
-
-  float Scale::convert(float x) {
-    return x * a + b;
-  }
-
+ 
   void RunUI() {
+
+        GUI::InitGFX(&gfx);
+        App::mainApp.startup();
 
         // calibration
         drawCross(10,10, RED);
         TSPoint first = waitOneTouch();
-        chThdSleepMilliseconds(3000);
+        chThdSleepMilliseconds(1000);
         drawCross(230,310, RED);
         TSPoint second = waitOneTouch();
 
-        Scale xc = Scale(first.x,10,  second.x, 230);
-        Scale yc = Scale(first.y,10, second.y, 310);
+        GUI::Scale xc = GUI::Scale(first.x,10,  second.x, 230);
+        GUI::Scale yc = GUI::Scale(first.y,10, second.y, 310);
         
+        //GUI::Button b(NULL, 100,40,100,30, "my button");
 
-      
-       // gfx.drawPixel(60,60,RED);
-       gfx.drawLine(0,0,320,200,0xFF);
-
-       //Adafruit_GFX_Button *btn = new Adafruit_GFX_Button();
-        btn.initButton(&gfx, 100,20,100,10,0xFF, 0xFFFF,0x0F, "Hello", 1);
-        btn.drawButton();
+        //b.draw();
 
       while(true) {
 
-        
-/*
-       int16_t x = ts.readTouchX();
-       if (x < 0) x = 0;
-       
-       int16_t y = ts.readTouchY();
-       if (y < 0) y = 0;
-
-        if (y > 200) y = 200;
-        if (x > 200) x = 200;
-        */
-       
-       
         // chThdSleepMicroseconds(10000);
-         gfx.drawPixel(50 +random(100), 50 + random(100),RED);
+       
          //noInterrupts();
-        TSPoint t = waitOneTouch();
-        // interrupts();
+        TSPoint t = getPoint();
+        if (isTouched(t)) {
+          // interrupts();
+          GUI::TouchMessage m( NULL, xc.convert(t.x), yc.convert(t.y)) ;
+          App::mainApp.dispatchMessage(&m);
+        } else {
+          gfx.drawPixel(50 +random(100), 50 + random(100),random(100)); // RED
+        }
+         
+        
        
-       
-         gfx.drawPixel(xc.convert(t.x), yc.convert(t.y),GREEN);
       }
   
   }
