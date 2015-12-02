@@ -6,27 +6,38 @@
 
 #include <ChibiOS_AVR.h>
 
+#include <SdFat.h>
+#include "SSMidi.h"
+
+
 
 // Declare a semaphore with an inital counter value of zero.
-SEMAPHORE_DECL(sem, 0);
+// SEMAPHORE_DECL(sem, 0);
 //------------------------------------------------------------------------------
 // Thread 1, turn the LED off when signalled by thread 2.
 
 // 64 byte stack beyond task switch and interrupt needs
-static WORKING_AREA(waThread1, 64);
+static WORKING_AREA(waThread1, 128);
 
 static msg_t Thread1(void *arg) {
 
   //chSemWait(&sem); // block thread
 
+
   Serial.begin(115000);
+
+   midiDaemon();
+   
   uint16_t c = 0;
   while(true) {
+
   
-  chThdSleepMilliseconds(1000);
+   chThdSleepMilliseconds(1000);
    Serial.print(c++);
-   Serial.print("\n");
+   Serial.print(F("\n"));
     
+
+   
       
     // Wait for signal from thread 2.
    //  chSemWait(&sem);

@@ -7,7 +7,6 @@ GFX::GFX(Adafruit_TFTLCD *tft, int16_t w, int16_t h): Adafruit_GFX( w,  h) {
 
  void GFX::drawPixel(int16_t x, int16_t y, uint16_t color) {
     _tft->drawPixel(x, y, color);
-  
 };
 
 

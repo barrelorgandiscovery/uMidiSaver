@@ -4,11 +4,22 @@
 
 #include "GFX.h"
 
+// Assign human-readable names to some common 16-bit color values:
+#define BLACK   0x0000
+#define BLUE    0x001F
+#define RED     0xF800
+#define GREEN   0x07E0
+#define CYAN    0x07FF
+#define MAGENTA 0xF81F
+#define YELLOW  0xFFE0
+#define WHITE   0xFFFF
+
+
 namespace GUI {
   
   void InitGFX(GFX *gfx);
 
-
+  GFX *getGFX();
 
    class Scale {
         private:
@@ -40,6 +51,14 @@ namespace GUI {
         TouchMessage(void *_sender, uint16_t _x, uint16_t _y);
         uint16_t x;
         uint16_t y;
+  };
+
+  #define TIMER_MSG 2
+  class TimerMessage : public Message {
+     public:
+        TimerMessage(long _ticks);
+        long ticks;
+    
   };
 
 
@@ -78,6 +97,8 @@ namespace GUI {
   class BaseWidget : public BaseUI {
      public:
       BaseWidget(BaseUI *_parent);
+      // startup phase
+      virtual void startup() = 0;
       // draw the button
       virtual void draw() = 0;
       // dispatch the message and return if the message is consumed
@@ -90,11 +111,12 @@ namespace GUI {
       
   };
 
+  #define BUTTON_PRESSED 10
   // wrapper
-  class Button : BaseWidget {
+  class Button : public BaseWidget {
 
       public:
-          Button(BaseUI *_parent,uint16_t _x, uint16_t _y, uint16_t _width,uint16_t _height, char *_str);
+          Button(BaseUI *_parent,uint16_t _x, uint16_t _y, uint16_t _width,uint16_t _height,char *_str, uint8_t _text_size);
           virtual void startup();
           virtual void draw();
           virtual bool dispatchMessage(Message *msg);
@@ -104,7 +126,8 @@ namespace GUI {
           uint16_t x;
           uint16_t y; uint16_t width;
           uint16_t height;
-           char *str;
+          uint8_t text_size;
+          char *str;
           
     
   };

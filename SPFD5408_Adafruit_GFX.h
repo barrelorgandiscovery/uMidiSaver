@@ -115,7 +115,7 @@ class Adafruit_GFX_Button {
   uint16_t _w, _h;
   uint8_t _textsize;
   uint16_t _outlinecolor, _fillcolor, _textcolor;
-  char _label[10];
+  char _label[15];
 
   boolean currstate, laststate;
 };

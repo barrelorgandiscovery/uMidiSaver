@@ -55,15 +55,6 @@
 // optional
 #define LCD_RESET A4
 
-// Assign human-readable names to some common 16-bit color values:
-#define BLACK   0x0000
-#define BLUE    0x001F
-#define RED     0xF800
-#define GREEN   0x07E0
-#define CYAN    0x07FF
-#define MAGENTA 0xF81F
-#define YELLOW  0xFFE0
-#define WHITE   0xFFFF
 
 
   // For better pressure precision, we need to know the resistance
@@ -74,7 +65,7 @@
   static Adafruit_TFTLCD tft(LCD_CS, LCD_CD, LCD_WR, LCD_RD, LCD_RESET);
   static GFX gfx(&tft, 240,320);
   
-  TouchScreen ts  = TouchScreen(XP, YP, XM, YM, SENSITIVITY);
+  static TouchScreen ts = TouchScreen(XP, YP, XM, YM, SENSITIVITY);
 
 
   #define MINPRESSURE 100 // inital 200-700
@@ -94,12 +85,9 @@
   
   
   TSPoint waitOneTouch() {
-  
       TSPoint p;
-      
       do {
-        p= ts.getPoint(); 
-      
+        p= ts.getPoint();
         pinMode(XM, OUTPUT); //Pins configures again for TFT control
         pinMode(YP, OUTPUT);
          chThdSleepMicroseconds(1000);
@@ -112,12 +100,9 @@
  
   void InitUI() {
        
-       
-       
        tft.begin(0x9341); // SDFP5408
        tft.setRotation(90);
   
-       
   }
 
   void drawCross(uint16_t x, uint16_t y, uint16_t color) {
@@ -129,8 +114,7 @@
   void RunUI() {
 
         GUI::InitGFX(&gfx);
-        App::mainApp.startup();
-
+        
         // calibration
         drawCross(10,10, RED);
         TSPoint first = waitOneTouch();
@@ -141,25 +125,28 @@
         GUI::Scale xc = GUI::Scale(first.x,10,  second.x, 230);
         GUI::Scale yc = GUI::Scale(first.y,10, second.y, 310);
         
-        //GUI::Button b(NULL, 100,40,100,30, "my button");
 
-        //b.draw();
-
+        long ticks = millis();
+        App::mainApp.startup();
+   
       while(true) {
 
         // chThdSleepMicroseconds(10000);
-       
-         //noInterrupts();
+         
         TSPoint t = getPoint();
         if (isTouched(t)) {
-          // interrupts();
           GUI::TouchMessage m( NULL, xc.convert(t.x), yc.convert(t.y)) ;
           App::mainApp.dispatchMessage(&m);
-        } else {
-          gfx.drawPixel(50 +random(100), 50 + random(100),random(100)); // RED
+          //gfx.drawPixel(50 +random(100), 50 + random(100),random(100)); // RED
+        }
+
+        if (millis() - ticks > 100) {
+          GUI::TimerMessage m(millis() - ticks);
+          App::mainApp.dispatchMessage(&m);
+          ticks = millis();
         }
          
-        
+        // gfx.drawPixel(50 +random(100), 50 + random(100),random(100)); // RED
        
       }
   
