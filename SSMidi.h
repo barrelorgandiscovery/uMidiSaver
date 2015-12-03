@@ -5,21 +5,21 @@
 
 
 #include <SdFat.h>
+#include <ChibiOS_AVR.h>
 
-
+#define SS_COMMAND_WAIT 'W'
+#define SS_COMMAND_START 'S'
+#define SS_COMMAND_END 'E'
 
 extern "C" {
   
-  // static char bufferState[128/8]; // for gui showing the state of the read
-  
-  // buffer des ordres sauvegardes dans la SDCard
-  
-  // static char saveBuffer[400];
+  void ss_comm_daemon();
 
-  
-  void midiDaemon();
 
-  
+  // rendez vous implementation, 
+  // for communication
+  void ss_wait_for_command(char command);
+  void ss_change_command(char command);
 
 }
 

@@ -65,18 +65,22 @@ namespace GUI {
   ///////////////////////////////////////////////////
   // Widget
 
-  class Rect {
+  struct Rect {
     public:
       uint16_t x;
       uint16_t y;
       uint16_t width;
       uint16_t height;
 
-      Rect(uint16_t _x, uint16_t _y, uint16_t _width, uint16_t _height);
+     //  Rect(uint16_t _x, uint16_t _y, uint16_t _width, uint16_t _height);
 
-      bool intersect(Rect *another);
-    
+      
+     
   };
+
+  bool rect_intersect(const Rect *another);
+  bool rect_contains(const Rect *,uint16_t x,uint16_t y); 
+    
 
   ////////////////////////////////////////////////////////////////////////////////////
   // Components
@@ -116,20 +120,17 @@ namespace GUI {
   class Button : public BaseWidget {
 
       public:
-          Button(BaseUI *_parent,uint16_t _x, uint16_t _y, uint16_t _width,uint16_t _height,char *_str, uint8_t _text_size);
+          Button(BaseUI *_parent,const GUI::Rect *_r,char *_str, uint8_t _text_size);
           virtual void startup();
           virtual void draw();
           virtual bool dispatchMessage(Message *msg);
 
       private:
-          Adafruit_GFX_Button btn;
-          uint16_t x;
-          uint16_t y; uint16_t width;
-          uint16_t height;
+      
+          const GUI::Rect *rect;
           uint8_t text_size;
           char *str;
-          
-    
+          void _draw(bool inverted = false);
   };
 
 

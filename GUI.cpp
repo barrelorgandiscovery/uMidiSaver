@@ -22,34 +22,33 @@ GFX *GUI::getGFX() {
     return x * a + b;
   }
 
-
-// rect
-GUI::Rect::Rect(uint16_t _x, uint16_t _y, uint16_t _width, uint16_t _height) : x(_x),y(_y), height(_height), width(_width)  {
-
-}
-
-
-
-
-
-bool GUI::Rect::intersect(Rect *another) {
+///////////////////////////////////////////////////////////////
+// rect struct
+namespace GUI {
+bool rect_intersect(const Rect * r, const Rect *another) {
   
-  if( (y + height )< another->y )
+  if( (r->y + r->height )< another->y )
     return false;
 
-  if( (x + width) < another->x)
+  if( (r->x + r->width) < another->x)
     return false;
 
-  if ( x > (another->x + another->width))
+  if ( r->x > (another->x + another->width))
     return false;
  
-  if ( y > (another->y + another->height))
+  if ( r->y > (another->y + another->height))
     return false;
  
  
   return true;
 }
 
+bool rect_contains(const Rect *rect, uint16_t x,uint16_t y) {
+  Rect r = {x,y,0,0};
+  return rect_intersect(rect, &r);
+}
+
+}
 
 
 ///////////////////////////////////////////////////////////////
@@ -84,19 +83,46 @@ GUI::TimerMessage::TimerMessage(long _ticks) : Message(TIMER_MSG, NULL), ticks(_
  ///////////////////////////////////////////////////////////////
  // button widget
 
+ #define OUTLINE_COLOR 0xFF
+ #define  FILL_COLOR  0xFFFF
+ #define TEXT_COLOR 0x0F
 
- GUI::Button::Button(BaseUI *_parent, uint16_t _x, uint16_t _y, uint16_t _width,uint16_t _height, char *_str, uint8_t _text_size) : BaseWidget(_parent),
-    x(_x),y(_y),width(_width),height(_height),str(_str), text_size(_text_size) {
+ GUI::Button::Button(BaseUI *_parent,const GUI::Rect *_rect,char *_str, uint8_t _text_size) : BaseWidget(_parent),
+    rect(_rect),str(_str), text_size(_text_size) {
   
  }
 
  void GUI::Button::startup() {
-    btn = Adafruit_GFX_Button();
-    btn.initButton(_gfx, x + width / 2,y + height / 2,width,height,0xFF, 0xFFFF,0x0F, str, text_size);
+ }
+
+ void GUI::Button::_draw(bool inverted) {
+    
+   uint16_t fill, outline, text;
+  
+     if (! inverted) {
+       fill = FILL_COLOR;
+       outline = OUTLINE_COLOR;
+       text = TEXT_COLOR;
+     } else {
+       fill =  TEXT_COLOR;
+       outline = OUTLINE_COLOR;
+       text = FILL_COLOR;
+     }
+  
+     _gfx->fillRoundRect(rect->x , rect->y , rect->width, rect->height, min(rect->width,rect->height)/4, fill);
+     _gfx->drawRoundRect(rect->x , rect->y , rect->width, rect->height, min(rect->width,rect->height)/4, outline);
+     
+     
+     _gfx->setCursor(rect->x + rect->width/2 - strlen(str)*3*text_size, rect->y + rect->height/2 -4*text_size);
+     _gfx->setTextColor(text);
+     _gfx->setTextSize(text_size);
+     _gfx->print(str);
+   
  }
  
  void GUI::Button::draw() {
-    btn.drawButton();
+    _draw();
+
  }
 
  bool GUI::Button::dispatchMessage(Message *msg) {
@@ -106,10 +132,10 @@ GUI::TimerMessage::TimerMessage(long _ticks) : Message(TIMER_MSG, NULL), ticks(_
     }
 
     TouchMessage *tm = (TouchMessage *)msg;
-    if (btn.contains(tm->x, tm->y)) {
+    if (rect_contains(rect, tm->x, tm->y)) {
       // blink
-      btn.drawButton(true);
-      btn.drawButton(false);
+      _draw(true);
+      _draw(false);
       Message m(BUTTON_PRESSED, this);
       sendMessage(&m);
       return true;

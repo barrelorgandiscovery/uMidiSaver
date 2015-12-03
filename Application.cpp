@@ -51,8 +51,9 @@ bool App::ShowMidiWidget::dispatchMessage(GUI::Message *msg) {
 ///////////////////////////////////////////////////////////////////////////////////
 // Record screen
 
-static GUI::Button stop(&App::recordScreen, 1,270,238,50,"Stop",3);
-static App::ShowMidiWidget midiWidget(&App::recordScreen, GUI::Rect(0,0,240,240));
+static const GUI::Rect extStop = {1,270,238,50};
+static GUI::Button stop(&App::recordScreen,&extStop,"Stop",3);
+static App::ShowMidiWidget midiWidget(&App::recordScreen, {0,0,240,240});
 
 App::RecordScreen::RecordScreen() : GUI::BaseWidget(&mainApp) {
   
@@ -86,7 +87,8 @@ void App::RecordScreen::sendMessage(GUI::Message *msg) {
 // Main Screen
 
 // components used for the screens
-static GUI::Button record(&App::mainScreen, 1,1,238,50,"Enregistrer",3);
+static const GUI::Rect extRecord = {1,1,238,50};
+static GUI::Button record(&App::mainScreen,&extRecord,"Enregistrer",3);
 
 
 App::MainScreen::MainScreen() : GUI::BaseWidget(&mainApp) { // reference the main app as parent
@@ -149,8 +151,10 @@ void App::Application::changeCurrent(GUI::BaseWidget *next) {
        
 void App::Application::sendMessage(GUI::Message *msg) {
     if (msg->msg == APP_MESSAGE_GO_HOME) {
+      ss_change_command(SS_COMMAND_END);   
       changeCurrent(&mainScreen);
     } else if (msg->msg == APP_MESSAGE_RECORD) {
+      ss_change_command(SS_COMMAND_START);
       changeCurrent(&recordScreen);
     }
 }
