@@ -15,11 +15,13 @@ extern "C" {
   
   void ss_comm_daemon();
 
-
   // rendez vous implementation, 
   // for communication
   void ss_wait_for_command(char command);
   void ss_change_command(char command);
+
+  // retrieve the midi state buffer
+  bool ss_get_note_state(uint8_t note);
 
 }
 

@@ -20,7 +20,7 @@ App::ShowMidiWidget::ShowMidiWidget(GUI::BaseWidget *_parent, GUI::Rect _rect) :
   
 }
 void App::ShowMidiWidget::startup() {
-  // saveBuffer[3] = 10;
+  
   
 }
 
@@ -42,7 +42,12 @@ bool App::ShowMidiWidget::dispatchMessage(GUI::Message *msg) {
     GFX *gfx = GUI::getGFX();
     gfx->drawPixel(current + ext.x, ext.y, GREEN);
     gfx->drawPixel(current + ext.x, ext.y + ext.height - 1, GREEN);
-    
+    GUI::Scale s(0,ext.y, 127, ext.y + ext.height);
+    for (int i = 0 ; i < 128; i ++) {
+      if (ss_get_note_state(i)) {
+        gfx->drawPixel(current + ext.x, s.convert(i), YELLOW);
+      } 
+    }
   }
   
 }
