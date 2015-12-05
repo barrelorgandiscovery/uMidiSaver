@@ -26,6 +26,7 @@ namespace App {
        virtual void draw();
        // dispatch the message and return if the message is consumed
        virtual bool dispatchMessage(GUI::Message *msg);
+       void resetPosition();
        
 
     private:

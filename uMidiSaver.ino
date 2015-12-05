@@ -1,11 +1,10 @@
-
+#include <EEPROM.h>
 
 #include "UI.h"
 
-//#include "SoftwareSerial.h"
+// #include "HardwareSerial.h"
 
 #include <ChibiOS_AVR.h>
-
 #include <SdFat.h>
 #include "SSMidi.h"
 
@@ -18,23 +17,16 @@
 static WORKING_AREA(waThread1, 128);
 
 static msg_t Thread1(void *arg) {
-
-
   Serial.begin(115000);
-
    ss_comm_daemon();
-   
   return 0;
 }
 
 // static WORKING_AREA(waThread2, 128);
 
 static msg_t Thread2(void *arg) {
-
-
   InitUI();
   RunUI();
-   
   return 0;
 }
 //------------------------------------------------------------------------------
@@ -49,16 +41,9 @@ void setup() {
   
   // start deamon thread
   Thread *t1 = chThdCreateStatic(waThread1, sizeof(waThread1),
-    NORMALPRIO , Thread1, NULL);
-    /*
-  Thread *t2 = chThdCreateStatic(waThread2, sizeof(waThread2),
-    NORMALPRIO , Thread2, NULL);
-
-  chThdWait(t1);
-  chThdWait(t2);
-  */
-
-   InitUI();
+                                  NORMALPRIO , Thread1, NULL);
+  //main thread handle the UI
+  InitUI();
   RunUI();
 
 }

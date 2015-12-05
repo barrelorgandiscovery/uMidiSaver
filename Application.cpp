@@ -24,6 +24,9 @@ void App::ShowMidiWidget::startup() {
   
 }
 
+void App::ShowMidiWidget::resetPosition() {
+  current = 0;
+}
 
 void App::ShowMidiWidget::draw() {
    GFX *gfx = GUI::getGFX();
@@ -89,10 +92,10 @@ void App::RecordScreen::sendMessage(GUI::Message *msg) {
 
 
 ///////////////////////////////////////////////////////////////////////////////////
-// Main Screen
+// Main Screen - Home
 
 // components used for the screens
-static const GUI::Rect extRecord = {1,1,238,50};
+static const GUI::Rect extRecord = {1,150,238,50};
 static GUI::Button record(&App::mainScreen,&extRecord,"Enregistrer",3);
 
 
@@ -104,7 +107,14 @@ void App::MainScreen::startup() {
 }
 
 void App::MainScreen::draw() {
-  record.draw();
+   GFX *gfx = GUI::getGFX();
+   gfx->setCursor(5,10);
+   gfx->setTextSize(1);
+   gfx->setTextColor(WHITE);
+   gfx->print(F("uMidiSaver - Record Midi into SD Card"));
+   gfx->setCursor(5,25);
+   gfx->print(F("P. Freydiere - 2015"));
+   record.draw();
 }
 
  // dispatch the message and return if the message is consumed
@@ -113,7 +123,7 @@ bool App::MainScreen::dispatchMessage(GUI::Message *msg) {
 }
 
 void App::MainScreen::sendMessage(GUI::Message *msg) {
- Serial.print(F("main screen message"));
+  //Serial.print(F("main screen message"));
   if (msg->msg == BUTTON_PRESSED && msg->sender == &record){
     
     GUI::Message m(APP_MESSAGE_RECORD, this);
@@ -160,6 +170,7 @@ void App::Application::sendMessage(GUI::Message *msg) {
       changeCurrent(&mainScreen);
     } else if (msg->msg == APP_MESSAGE_RECORD) {
       ss_change_command(SS_COMMAND_START);
+      midiWidget.resetPosition();
       changeCurrent(&recordScreen);
     }
 }

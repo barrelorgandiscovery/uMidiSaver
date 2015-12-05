@@ -268,7 +268,7 @@ void Adafruit_TFTLCD::begin(uint16_t id) {
 
   delay(200);
 
-  if((id == 0x9325) || (id == 0x9328)) {
+  /* if((id == 0x9325) || (id == 0x9328)) {
 
     uint16_t a, d;
     driver = ID_932X;
@@ -282,7 +282,7 @@ void Adafruit_TFTLCD::begin(uint16_t id) {
     setRotation(rotation);
     setAddrWindow(0, 0, TFTWIDTH-1, TFTHEIGHT-1);
 
-  } else if (id == 0x9341) {
+  } else */ if (id == 0x9341) {
 
     uint16_t a, d;
     driver = ID_9341;
@@ -314,7 +314,7 @@ void Adafruit_TFTLCD::begin(uint16_t id) {
     setAddrWindow(0, 0, TFTWIDTH-1, TFTHEIGHT-1);
     return;
 
-  } else if (id == 0x8357) {
+  } /* else if (id == 0x8357) {
     // HX8357D
     driver = ID_HX8357D;
     CS_ACTIVE;
@@ -359,6 +359,7 @@ void Adafruit_TFTLCD::begin(uint16_t id) {
     driver = ID_UNKNOWN;
     return;
   }
+  */
 }
 
 void Adafruit_TFTLCD::reset(void) {
@@ -393,6 +394,8 @@ void Adafruit_TFTLCD::reset(void) {
 // assumed pre-sorted (e.g. x2 >= x1).
 void Adafruit_TFTLCD::setAddrWindow(int x1, int y1, int x2, int y2) {
   CS_ACTIVE;
+
+  /*
   if(driver == ID_932X) {
 
     // Values passed are in current (possibly rotated) coordinate
@@ -451,7 +454,7 @@ void Adafruit_TFTLCD::setAddrWindow(int x1, int y1, int x2, int y2) {
     writeRegisterPair(HX8347G_COLADDREND_HI  , HX8347G_COLADDREND_LO  , x2);
     writeRegisterPair(HX8347G_ROWADDREND_HI  , HX8347G_ROWADDREND_LO  , y2);
 
-  } else if ((driver == ID_9341) || (driver == ID_HX8357D)){
+  } else */ if ((driver == ID_9341) || (driver == ID_HX8357D)){
     uint32_t t;
 
     t = x1;

@@ -1,4 +1,7 @@
+#include <EEPROM.h>
+
 #include "UI.h"
+
 
 
 #include <ChibiOS_AVR.h>
@@ -110,21 +113,58 @@
       gfx.drawLine(x - 10, y + 10, x + 10, y - 10, color);
   }
 
- 
+   TSPoint readPoint(int &adr) {
+    int16_t x; 
+    int16_t y;
+    EEPROM.get(adr,x);
+    adr += sizeof(int16_t);
+    EEPROM.get(adr, y);
+    adr += sizeof(int16_t);
+    return TSPoint(x, y, 0); 
+  }
+
+  void writePoint(int &adr, TSPoint t) {
+    EEPROM.put(adr, t.x);
+    adr += sizeof(int16_t);
+    EEPROM.put(adr, t.y);
+    adr += sizeof(int16_t);
+  }
+
+  #define MAGIC_NUMBER 126
   void RunUI() {
 
         GUI::InitGFX(&gfx);
         
-        // calibration
-        drawCross(10,10, RED);
-        TSPoint first = waitOneTouch();
-        chThdSleepMilliseconds(1000);
-        drawCross(230,310, RED);
-        TSPoint second = waitOneTouch();
-
-        GUI::Scale xc = GUI::Scale(first.x,10,  second.x, 230);
-        GUI::Scale yc = GUI::Scale(first.y,10, second.y, 310);
+         TSPoint first;
+        TSPoint second;
         
+        if (EEPROM.read(0) != MAGIC_NUMBER) {
+
+          // calibration
+          drawCross(10,10, RED);
+          first = waitOneTouch();
+          chThdSleepMilliseconds(1000);
+          drawCross(230,310, RED);
+          second = waitOneTouch();
+
+          int adr = 1;
+          writePoint(adr,first);
+          writePoint(adr,second);
+          EEPROM.write(0,(char)MAGIC_NUMBER);
+  
+          
+
+        } else 
+        {
+          // already calibrated
+          int adr = 1;
+          first = readPoint(adr);
+          second = readPoint(adr);
+        }
+
+       GUI::Scale xc = GUI::Scale(first.x,10, second.x, 230);
+       GUI::Scale  yc = GUI::Scale(first.y,10, second.y, 310);
+
 
         long ticks = millis();
         App::mainApp.startup();
