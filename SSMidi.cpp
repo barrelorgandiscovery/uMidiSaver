@@ -19,12 +19,16 @@ void ss_reset_notes_state() {
 }
 
 bool ss_get_note_state(uint8_t note) {
+  if (note > 127)
+    return false;
   uint8_t index = note >> 3;
   uint8_t m = note - (index << 3);
   return (ss_state[index] & (1 << m)) != 0;
 }
 
 void ss_set_note_state(uint8_t note, bool state) {
+  if (note > 127)
+    return;
   uint8_t index = note >> 3;
   uint8_t m = note - (index << 3);
   if (state) {
@@ -74,7 +78,38 @@ int getNextNo() {
 ////////////////////////////////////////////////////////
 // midi state machine
 
+struct midi_parser_state {
+  uint8_t running_state;
+} parser_state;
 
+void emitNote(bool onoff, unsigned long ticks, uint8_t note, uint8_t velocity) {
+
+  myFile.print(onoff);
+  myFile.print(' ');
+  
+  myFile.print(ticks);
+  myFile.print(' ');
+
+  myFile.print(note);
+  myFile.print(' ');
+
+  myFile.print(velocity);
+  myFile.println();
+  
+   
+}
+
+uint8_t blockingSerialRead() {
+  int r = Serial.read();
+  while(r < 0) {
+    r = Serial.read();
+  }
+  return r;
+}
+
+
+#define NOTE_ON 0x09
+#define NOTE_OFF 0x08
 
 
 /////////////////////////////////////////////////////////
@@ -82,11 +117,15 @@ int getNextNo() {
 
 void ss_comm_daemon() {
 
+   Serial.begin(31250);
+
+   //Serial.begin(115000);
+   
    if (!SD.begin(10)) { // chip select on 10
       Serial.println(F("initialization failed!"));
       return;
    }
-   Serial.println(F("initialization done."));
+   // Serial.println(F("initialization done."));
         
 
    while (true) {
@@ -102,37 +141,37 @@ void ss_comm_daemon() {
       // create the file
       {
         char file[11];
-        sprintf(file, "F%05d.mid", fileNo);
+        sprintf(file, "F%05d.ev", fileNo);
         // open the file for write at end like the Native SD library
         if (!myFile.open(file, O_RDWR | O_CREAT | O_AT_END)) {
-              Serial.print(F("opening test.txt for write failed"));
+              Serial.print(F("opening file for write failed"));
               return;
         }
       }
     
       while (ss_comm_command != 'E') { // while the user has not pressed stop
-         
-          // if the file opened okay, write to it:
-          Serial.print(F("Writing to test.txt..."));
-          long m = millis();
-          for (int i = 0 ; i < 1000; i ++) {
-            myFile.println(F("testing 1, 2, 3."));
-            
-            
+
+          uint8_t b = blockingSerialRead();
+          // command sent
+
+          uint8_t cmd = (b >> 4);
+          if (cmd == NOTE_ON || cmd == NOTE_OFF) {
+             ss_set_note_state(1,!ss_get_note_state(1));
+             uint8_t note = blockingSerialRead();
+             uint8_t velocity = blockingSerialRead();
+             bool isOn = cmd == NOTE_ON && velocity != 0;
+             emitNote(isOn, millis(), note,velocity);
+             ss_set_note_state(note, isOn);
+          } else 
+          {
+             // other events .. to handle
           }
-          
-          uint8_t r = random(128);
-          ss_set_note_state(r, !ss_get_note_state(r));
-          
          
       } // while not end
 
-       // close the file:
-          myFile.close();
-       //   Serial.print(F("perfs :"));
-       //   Serial.print(millis() - m);
-       //   Serial.println();
+      // close the file:
+      myFile.close();
       ss_wait_for_command(SS_COMMAND_END); 
-  } //while true
+  }   //while true
 }
 

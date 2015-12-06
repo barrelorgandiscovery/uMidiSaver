@@ -17,7 +17,7 @@
 static WORKING_AREA(waThread1, 128);
 
 static msg_t Thread1(void *arg) {
-  Serial.begin(115000);
+ 
    ss_comm_daemon();
   return 0;
 }
