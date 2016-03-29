@@ -171,7 +171,7 @@
    
       while(true) {
 
-        // chThdSleepMicroseconds(10000);
+        chThdSleepMicroseconds(10000);
          
         TSPoint t = getPoint();
         if (isTouched(t)) {

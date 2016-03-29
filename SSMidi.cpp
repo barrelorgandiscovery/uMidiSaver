@@ -82,6 +82,7 @@ struct midi_parser_state {
   uint8_t running_state;
 } parser_state;
 
+
 void emitNote(bool onoff, unsigned long ticks, uint8_t note, uint8_t velocity) {
 
   myFile.print(onoff);
@@ -98,14 +99,28 @@ void emitNote(bool onoff, unsigned long ticks, uint8_t note, uint8_t velocity) {
   
    
 }
+/*
+inline void emitNote(bool onoff, unsigned long ticks, uint8_t note, uint8_t velocity) {
 
-uint8_t blockingSerialRead() {
+  myFile.write(onoff);
+  
+  myFile.write(ticks);
+  
+  myFile.write(note);
+  
+  myFile.write(velocity);
+  
+   
+}
+*/
+inline uint8_t blockingSerialRead() {
   int r = Serial.read();
   while(r < 0) {
     r = Serial.read();
   }
   return r;
 }
+
 
 
 #define NOTE_ON 0x09
@@ -140,31 +155,82 @@ void ss_comm_daemon() {
       
       // create the file
       {
-        char file[11];
-        sprintf(file, "F%05d.ev", fileNo);
+        char file[9];
+        file[8] = '\0';
+        sprintf(file, "F%05d.e", fileNo);
         // open the file for write at end like the Native SD library
         if (!myFile.open(file, O_RDWR | O_CREAT | O_AT_END)) {
               Serial.print(F("opening file for write failed"));
               return;
         }
       }
+
+      uint8_t running_status; // current running status
+      uint8_t command_read = 0; // has read command
     
       while (ss_comm_command != 'E') { // while the user has not pressed stop
 
+          // read a byte
           uint8_t b = blockingSerialRead();
           // command sent
 
-          uint8_t cmd = (b >> 4);
+      cmd_received:
+
+          command_read = 0;
+          if ( b > 0x7F) {
+            // command
+            running_status = b;
+            command_read = 1;
+          }
+          
+
+          const uint8_t cmd = (running_status >> 4); // shift running status
           if (cmd == NOTE_ON || cmd == NOTE_OFF) {
-             ss_set_note_state(1,!ss_get_note_state(1));
-             uint8_t note = blockingSerialRead();
+
+
+            
+             // ss_set_note_state(1,!ss_get_note_state(1));
+             uint8_t note = b;
+
+             if (command_read > 0) {
+                note = blockingSerialRead();
+             }
+             // we ignore the channel
              uint8_t velocity = blockingSerialRead();
-             bool isOn = cmd == NOTE_ON && velocity != 0;
+             bool isOn = (cmd == NOTE_ON && velocity != 0);
              emitNote(isOn, millis(), note,velocity);
              ss_set_note_state(note, isOn);
-          } else 
+
+          
+          }  else if ( cmd == 0x0A || cmd == 0x0B || cmd == 0x0E) 
           {
-             // other events .. to handle
+            // 2 bytes to read
+            b = blockingSerialRead();
+            if (b > 0x7F) goto cmd_received;
+            b = blockingSerialRead();
+            if (b > 0x7F) goto cmd_received;
+            
+          } else if (cmd == 0x0C || cmd == 0x0D) {
+            // 1 byte to read
+            b = blockingSerialRead();
+            if (b > 0x7F) goto cmd_received;
+            
+          } else if (cmd == 0x0F) {
+              if (running_status == 0xFF) {
+                // we have a FF command
+                running_status = 0;
+                // nb of byte to read
+                uint8_t n = blockingSerialRead();
+                while(n-->0) {
+                  // read the other bytes
+                  blockingSerialRead();
+                }
+              } else if (running_status == 0xF8 || running_status == 0xFA
+                          || running_status == 0xFB || running_status == 0xFC) {
+
+                  // no other bytes              
+              }
+
           }
          
       } // while not end
@@ -173,5 +239,10 @@ void ss_comm_daemon() {
       myFile.close();
       ss_wait_for_command(SS_COMMAND_END); 
   }   //while true
+
+
 }
+
+
+
 
