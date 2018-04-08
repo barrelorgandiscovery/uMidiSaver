@@ -31,11 +31,21 @@
 //   D6 connects to digital pin 6
 //   D7 connects to digital pin 7
 
+/////////////////////////////////////////////////////
+// PF, old screen
 
-#define YP A1  // must be an analog pin, use "An" notation!
+// #define YP A1  // must be an analog pin, use "An" notation!
+// #define XM A2  // must be an analog pin, use "An" notation!
+// #define YM 7   // can be a digital pin
+// #define XP 6   // can be a digital pin
+
+// PF, new screen
+#define YP A3  // must be an analog pin, use "An" notation!
 #define XM A2  // must be an analog pin, use "An" notation!
-#define YM 7   // can be a digital pin
-#define XP 6   // can be a digital pin
+#define YM 9   // can be a digital pin
+#define XP 8   // can be a digital pin
+
+
 
 // Original values
 //#define TS_MINX 150

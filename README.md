@@ -7,11 +7,13 @@ Ce projet utilise :
 
 - un arduino UNO
 - une connection MIDI pluggée sur le port serie
-- un écran tactile Bangood
+- un écran tactile Banggood sur une base de chipset SPFD5408
 
 ##Utilisation
 
 Le logiciel est très simple à utiliser depuis l'arduino, il n'y a qu'un bouton permettant de faire démarrer l'enregistrement. un autre bouton pour arreter l'enregistrement.
 
-L'enregistrement est réalisé sur une carte micro SD, pouvant être retirée de uMidiSaver, et ouvert sur un PC.
+L'enregistrement est réalisé sur une carte micro SD, le fichier est au format texte.
+
+
 
